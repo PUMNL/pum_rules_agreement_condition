@@ -1,0 +1,6 @@
+name = PUM  Condition for Agreement
+description =  Drupal Rule condition to check whether the contact has agreed  to the gentlemens agreement, or privacy statement.
+package = PUM
+core = 7.x
+version = "7.x-1.0"
+project = pum_rules_agreement_condition

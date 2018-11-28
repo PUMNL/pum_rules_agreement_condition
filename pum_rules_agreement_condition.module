@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * Implements hook_rules_condition_info().
+ */
+function pum_rules_agreement_condition_rules_condition_info() {
+  return array(
+    'pum_rules_agreement_condition_rules_condition_civicrm_checkbox' => array(
+      'label' => t('Checks a checkbox in  CiviCRM'),
+      'description' => t('Checks a checkbox in  CiviCRM.'),
+      'group' => t('PUM Agreement Condition'),
+      'parameter' => array(
+        'fields' => array(
+            'type' => 'list<integer>',
+            'label' => 'Fields',
+            'options list' => 'pum_rules_agreement_condition_rules_condition_civicrm_checkbox_options',
+            'restriction' => 'input',
+        ),
+      ),
+    ),
+  );
+}
+
+function pum_rules_agreement_condition_rules_condition_civicrm_checkbox_options() {
+  civicrm_initialize();
+  $fields = array();
+  $custom_groups = civicrm_api3('CustomGroup', 'get', array('extends' => 'Individual', 'options' => array('limit' => 0)));
+  foreach($custom_groups['values'] as $custom_group) {
+    $custom_fields = civicrm_api3('CustomField', 'get', array('custom_group_id' => $custom_group['id'],  'options' => array('limit' => 0)));
+    foreach($custom_fields['values'] as $custom_field) {
+      switch (($custom_field['html_type'])) {
+        case 'Select':
+          $fields[$custom_field['id']] = $custom_group['title'].' :: '.$custom_field['label'];
+      }
+    }
+  }
+  return $fields;
+}
+
+function pum_rules_agreement_condition_rules_condition_civicrm_checkbox($fields, $parameters, $rule_state, $element, $base_path) {
+  civicrm_initialize();
+  $contact_id = $session = CRM_Core_Session::getLoggedInContactID();
+  if (!$contact_id) {
+    return false;
+  }
+  $return = TRUE;
+  $params['entity_id'] = $contact_id;
+  $params['check_permissions'] = false;
+  $custom_values = civicrm_api3('CustomValue', 'get', $params);
+  foreach($fields as $field_id) {
+    if (!isset($custom_values['values'][$field_id])) {
+      return false;
+    }
+    if (!$custom_values['values'][$field_id]['latest']) {
+      return false;
+    }
+  }
+  return true;
+}
